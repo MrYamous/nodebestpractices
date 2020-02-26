@@ -1,10 +1,11 @@
-#  Limit concurrent requests using a balancer or a middleware
+# Limitez les requêtes simultanées en utilisant un équilibreur ou un intergiciel
 
-### One Paragraph Explainer
+### Un paragraphe d'explication
 
-Rate limiting should be implemented in your application to protect a Node.js application from being overwhelmed by too many requests at the same time. Rate limiting is a task best performed with a service designed for this task, such as nginx, however it is also possible with [rate-limiter-flexible](https://www.npmjs.com/package/rate-limiter-flexible) package or middleware such as [express-rate-limiter](https://www.npmjs.com/package/express-rate-limit) for Express.js applications.
- 
-  ### Code example: pure Node.js app with [rate-limiter-flexible](https://www.npmjs.com/package/rate-limiter-flexible)
+La limitation de la cadence devrait être implémentée dans votre application pour protéger une application Node.js d'être submergée par trop de requêtes simultanées.
+La limitation de la cadence est une tâche plus performante avec un service conçu pour celle-ci, comme nginx, cependant c'est aussi possible avec la librairie [rate-limiter-flexible](https://www.npmjs.com/package/rate-limiter-flexible) ou l'intergiciel (NdT middleware) comme [express-rate-limiter](https://www.npmjs.com/package/express-rate-limit) pour une application Express.js.
+
+### Exemple de code : application Node.js avec [rate-limiter-flexible](https://www.npmjs.com/package/rate-limiter-flexible)
  
   ```javascript
  const http = require('http');
@@ -14,19 +15,19 @@ Rate limiting should be implemented in your application to protect a Node.js app
  const redisClient = redis.createClient({
    enable_offline_queue: false,
  });
-
- // Maximum 20 requests per second
+ 
+ // maximum 20 requêtes par seconde
  const rateLimiter = new RateLimiterRedis({
    storeClient: redisClient,
    points: 20,
    duration: 1,
-   blockDuration: 2, // block for 2 seconds if consumed more than 20 points per second
+   blockDuration: 2, // bloque pour deux secondes si plus de 20 points par seconde sont consommés
  });
 
  http.createServer(async (req, res) => {
     try {
     const rateLimiterRes = await rateLimiter.consume(req.socket.remoteAddress);
-    // Some app logic here
+    // logique de l'application ici
 
     res.writeHead(200);
     res.end();
@@ -38,15 +39,15 @@ Rate limiting should be implemented in your application to protect a Node.js app
    .listen(3000);
  ```
 
-You can find [more examples in the documentation](https://github.com/animir/node-rate-limiter-flexible/wiki/Overall-example).
+Vous pouvez trouver [plus d'exemples dans la documentation](https://github.com/animir/node-rate-limiter-flexible/wiki/Overall-example).
 
-### Code example: Express rate limiting middleware for certain routes
+### Exemple de code: l'intergiciel d'Express de limitation de cadence pour certaines routes
 
-Using [express-rate-limiter](https://www.npmjs.com/package/express-rate-limit) npm package
+En utilisant la librairie npm [express-rate-limiter](https://www.npmjs.com/package/express-rate-limit)
 
 ```javascript
 const RateLimit = require('express-rate-limit');
-// important if behind a proxy to ensure client IP is passed to req.ip
+// si derrière un proxy, il est important de s'assurer que l'IP du client est passée à req.ip
 app.enable('trust proxy'); 
  
 const apiLimiter = new RateLimit({
@@ -54,12 +55,11 @@ const apiLimiter = new RateLimit({
   max: 100,
 });
  
-// only apply to requests that begin with /user/
+// s'applique uniquement aux requêtes qui commencent par /user/
 app.use('/user/', apiLimiter);
 ```
 
-### What Other Bloggers Say
+### Ce que disent les autres blogueurs
 
-From the [NGINX blog](https://www.nginx.com/blog/rate-limiting-nginx/):
-> Rate limiting can be used for security purposes, for example to slow down brute‑force password‑guessing attacks. It can help protect against DDoS attacks by limiting the incoming request rate to a value typical for real users, and (with logging) identify the targeted URLs. More generally, it is used to protect upstream application servers from being overwhelmed by too many user requests at the same time.
-
+Extrait du [blog NGINX](https://www.nginx.com/blog/rate-limiting-nginx/):
+> La limitation de la cadence peut être utilisée pour des raisons de sécurité, par exemple pour ralentir les attaques par force brute pour deviner un mot de passe. Cela peut aider à se protéger contre les attaques par déni de service en limitant le nombre de requêtes entrantes à une valeur typique pour les utilisateur réels, et (avec journalisation) identifie les URL ciblées. Plus généralement, c'est utilisé pour protéger en amont les serveurs de l'application d'être submergés par trop de requêtes d'utilisateurs en même temps.
